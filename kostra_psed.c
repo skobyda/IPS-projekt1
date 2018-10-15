@@ -6,17 +6,17 @@
 #include<vector>
 #include <iostream>
 #include<string.h>
-
+#include<regex>
 
 
 std::vector<std::mutex *> zamky; /* pole zamku promenne velikosti */
+std::vector<char *> line; /* pole charov premennej velkosti pre ulozenie riadkov */
 
 struct reg_exp_struct {
 	char *re;
 	char *repl;
 };
 
-char *line;
 
 char *to_cstr(std::string a) {
 	// prevede retezec v c++ do retezce v "c" (char *)
@@ -42,8 +42,10 @@ char *read_line(int *res) {
 
 
 void thr_f(struct reg_exp_struct reg_exp) {
-	/* funkce implementujici thread */
-	printf("Thread %s started\n",reg_exp.re);
+
+	printf("%s %s\n ", reg_exp.re, reg_exp.repl);
+	//	std::string res = std::regex_replace( line[0], reg_exp.re, reg_exp.repl);
+	//	std::cout << res << "\n";
 }
 
 int main(int argc, char **argv) {
@@ -68,7 +70,7 @@ int main(int argc, char **argv) {
         for(int i = 0; i < num; i++){
                 reg_exp.push_back(reg_exp_struct()); // constructor noveho elementu struktury
                 reg_exp[i].re = argv[i*2+1];
-                reg_exp[i].repl = argv[i*2+1];
+                reg_exp[i].repl = argv[i*2+2];
         } 
 
 	/* vytvorime zamky */
@@ -88,12 +90,11 @@ int main(int argc, char **argv) {
 	/**********************************
 	 * Vlastni vypocet psed
 	 * ********************************/
-	int res;
-	line = read_line(&res);
-	while (res) {
-		printf("%s\n",line);
-		free(line); /* uvolnim pamet */
-		line = read_line(&res);
+	int res = 1;
+	for(int i = 0; res; i++) {
+		line.push_back(char());
+		line[i] = read_line(&res);
+		printf("line[%i] == %s \n",i,line[i]);
 	}
 
 
