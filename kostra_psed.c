@@ -12,8 +12,10 @@
 std::vector<std::mutex *> zamky; /* pole zamku promenne velikosti */
 std::vector<char *> line; /* pole charov premennej velkosti pre ulozenie riadkov */
 
+
+/* Struktura ukladajuca regularne vyrazy REi a REPLi */
 struct reg_exp_struct {
-	char *re;
+	std::regex re;
 	char *repl;
 };
 
@@ -40,19 +42,43 @@ char *read_line(int *res) {
 
 }
 
+/*********************************/
+/* Funkcia pre jednotlive vlakna */
+/*         Paralelni SED         */
+/*********************************/
 
 void thr_f(struct reg_exp_struct reg_exp) {
+	
+	zamky[0]->lock(); 
+	for(int i = 0; i < line.size(); i++){
+		
+		zamky[1]->lock();
+		zamky[0]->unlock();
+		
+		std::string res = std::regex_replace( line[i], reg_exp.re, reg_exp.repl);
+		std::cout << res << "\n";
+		
+		zamky[1]->unlock();
+		zamky[0]->lock();
+	}
+	zamky[0]->unlock();
+}
 
-	printf("%s %s\n ", reg_exp.re, reg_exp.repl);
-	//	std::string res = std::regex_replace( line[0], reg_exp.re, reg_exp.repl);
-	//	std::cout << res << "\n";
+void errorArg()
+{
+	printf("ERROR => problem with arguments.");
 }
 
 int main(int argc, char **argv) {
 	
 	if (argc < 3){
-		//error
+		errorArg();
 		return 0;	
+	}
+
+	if ((argc - 1) % 2 == 1){
+		errorArg();
+		return 0;
 	}
 	
 	/*******************************
@@ -82,6 +108,7 @@ int main(int argc, char **argv) {
 
 	/* vytvorime thready */
 	threads.resize(num); /* nastavime si velikost pole threads */
+	zamky[0]->lock();
 	for(int i = 0; i < num; i++){	
 		std::thread *new_thread = new std::thread (thr_f, reg_exp[i]);
 		threads[i] = new_thread;
@@ -91,13 +118,13 @@ int main(int argc, char **argv) {
 	 * Vlastni vypocet psed
 	 * ********************************/
 	int res = 1;
-	for(int i = 0; res; i++) {
-		line.push_back(char());
-		line[i] = read_line(&res);
-		printf("line[%i] == %s \n",i,line[i]);
+	char *str = read_line(&res);
+	while(res) {
+		line.push_back(str);
+		str = read_line(&res);
 	}
-
-
+	
+	zamky[0]->unlock();
 	/**********************************
 	 * Uvolneni pameti
 	 * ********************************/
@@ -111,5 +138,4 @@ int main(int argc, char **argv) {
 	for(int i = 0; i < num_zamky; i++){
 		delete zamky[i];
 	}
-
 }
