@@ -60,14 +60,14 @@ void thr_f(struct reg_exp_struct reg_exp) {
 	for(int i = 0; i < line.size(); i++){
 		
 		zamky[1]->lock();
-                            zamky[0]->unlock();
+        zamky[0]->unlock();
 		zamky[3]->unlock();
 		
 		std::string res = std::regex_replace( line[i], reg_exp.re, reg_exp.repl);
 		std::cout << res << "\n";
 		
 		zamky[1]->unlock();
-                            zamky[0]->lock();
+        zamky[0]->lock();
         zamky[3]->lock();
 	}
 	zamky[0]->unlock();
