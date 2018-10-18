@@ -1,3 +1,9 @@
+/* AUTHORS:
+ * Simon Kobyda (xkobyd00)
+ * Juraj Samuel Salon (xsalon01)
+ */
+
+
 #include <stdio.h>
 #include<unistd.h>
 #include<thread>
