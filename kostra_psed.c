@@ -49,19 +49,23 @@ char *read_line(int *res) {
 
 void thr_f(struct reg_exp_struct reg_exp) {
 	
+    zamky[2]->unlock();
 	zamky[0]->lock(); 
 	for(int i = 0; i < line.size(); i++){
 		
 		zamky[1]->lock();
-		zamky[0]->unlock();
+                            zamky[0]->unlock();
+		zamky[3]->unlock();
 		
 		std::string res = std::regex_replace( line[i], reg_exp.re, reg_exp.repl);
 		std::cout << res << "\n";
 		
 		zamky[1]->unlock();
-		zamky[0]->lock();
+                            zamky[0]->lock();
+        zamky[3]->lock();
 	}
 	zamky[0]->unlock();
+    zamky[3]->unlock();
 }
 
 void errorArg()
@@ -85,7 +89,7 @@ int main(int argc, char **argv) {
 	 * Inicializace threadu a zamku
 	 * *****************************/
 	int num = (argc - 1) / 2;
-	int num_zamky = 2;
+	int num_zamky = 4;
 	
 	std::vector <std::thread *> threads; /* pole threadu promenne velikosti */
 	
@@ -109,7 +113,9 @@ int main(int argc, char **argv) {
 	/* vytvorime thready */
 	threads.resize(num); /* nastavime si velikost pole threads */
 	zamky[0]->lock();
+    zamky[3]->lock();
 	for(int i = 0; i < num; i++){	
+        zamky[2]->lock();
 		std::thread *new_thread = new std::thread (thr_f, reg_exp[i]);
 		threads[i] = new_thread;
 	}
